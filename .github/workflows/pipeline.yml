@@ -17,8 +17,8 @@ jobs:
 
       - name: Setup Node.js
         run: |
-          curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-          sudo apt-get install -y nodejs
+          nvm install 20
+          nvm use 20
           node --version
 
       - name: Install dependencies
