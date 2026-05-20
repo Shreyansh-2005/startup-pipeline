@@ -1,5 +1,10 @@
 
-require('dotenv').config();
+const fs = require('fs');
+const envFile = fs.readFileSync('.env', 'utf8');
+envFile.split('\n').forEach(line => {
+  const [key, value] = line.split('=');
+  if (key && value) process.env[key.trim()] = value.trim();
+});
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { createClient } = require('@supabase/supabase-js');
