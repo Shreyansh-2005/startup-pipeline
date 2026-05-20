@@ -23,6 +23,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+      - name: Check undici
+        run: npm list undici
       - name: Patch undici
         run: |
           find . -path ./node_modules/undici/lib/web/webidl/index.js | xargs sed -i 's/webidl.is.File = webidl.util.MakeTypeAssertion(File)/webidl.is.File = () => false/g'
