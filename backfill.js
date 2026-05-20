@@ -1,17 +1,24 @@
-
 const fs = require('fs');
 const envFile = fs.readFileSync('.env', 'utf8');
 envFile.split('\n').forEach(line => {
   const [key, value] = line.split('=');
   if (key && value) process.env[key.trim()] = value.trim();
 });
+
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { createClient } = require('@supabase/supabase-js');
 const Groq = require('groq-sdk');
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseHeaders = {
+  'apikey': supabaseKey,
+  'Authorization': `Bearer ${supabaseKey}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=minimal'
+};
 
 function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -64,14 +71,12 @@ Article: ${content}
 }
 
 async function searchWebsite(startupName) {
-  // Clean the name: lowercase, remove spaces and common suffixes
   const cleaned = startupName
     .toLowerCase()
     .replace(/\b(technologies|solutions|services|india|tech|ai|labs|ventures|innovations)\b/g, '')
     .replace(/[^a-z0-9]/g, '')
     .trim();
 
-  // Try these URL patterns in order
   const candidates = [
     `https://${cleaned}.com`,
     `https://${cleaned}.in`,
@@ -87,7 +92,7 @@ async function searchWebsite(startupName) {
       console.log(`  ✅ Found: ${url}`);
       return url;
     } catch (err) {
-      // URL didn't respond, try next
+      // try next
     }
   }
 
@@ -97,66 +102,66 @@ async function searchWebsite(startupName) {
 async function main() {
   console.log('🔄 Backfill starting...\n');
 
-  const { data: rows, error } = await supabase
-    .from('startups')
-    .select('id, name, founders, article_url, website');
+  try {
+    const response = await axios.get(
+      `${supabaseUrl}/rest/v1/startups?select=id,name,founders,article_url,website`,
+      { headers: supabaseHeaders }
+    );
 
-  if (error) {
-    console.error('Failed to fetch rows:', error.message);
+    const rows = response.data;
+    const toProcess = rows.filter(r => !r.founders || !r.website);
+    console.log(`Found ${toProcess.length} rows needing backfill\n`);
+
+    for (const row of toProcess) {
+      console.log(`\n🔍 ${row.name}`);
+      const updates = {};
+
+      if (row.article_url) {
+        console.log(`  📄 Scraping article...`);
+        const extracted = await extractFromArticle(row.name, row.article_url);
+
+        if (!row.founders && extracted.founders) {
+          updates.founders = extracted.founders;
+          console.log(`  👥 Founders: ${extracted.founders}`);
+        }
+        if (!row.website && extracted.website) {
+          updates.website = extracted.website;
+          console.log(`  🌐 Website from article: ${extracted.website}`);
+        }
+      }
+
+      if (!row.website && !updates.website) {
+        console.log(`  🔎 Searching website...`);
+        const found = await searchWebsite(row.name);
+        if (found) {
+          updates.website = found;
+          console.log(`  🌐 Website found: ${found}`);
+        } else {
+          console.log(`  ⚠️  No website found`);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        try {
+          await axios.patch(
+            `${supabaseUrl}/rest/v1/startups?id=eq.${row.id}`,
+            updates,
+            { headers: supabaseHeaders }
+          );
+          console.log(`  ✅ Updated`);
+        } catch (err) {
+          console.error(`  ❌ Update failed: ${err.message}`);
+        }
+      } else {
+        console.log(`  ⏭️  Nothing to update`);
+      }
+
+      await wait(2000);
+    }
+
+  } catch (err) {
+    console.error('Failed to fetch rows:', err.message);
     return;
-  }
-
-  const toProcess = rows.filter(r => !r.founders || !r.website);
-  console.log(`Found ${toProcess.length} rows needing backfill\n`);
-
-  for (const row of toProcess) {
-    console.log(`\n🔍 ${row.name}`);
-    const updates = {};
-
-    // Try scraping article first if URL exists
-    if (row.article_url) {
-      console.log(`  📄 Scraping article...`);
-      const extracted = await extractFromArticle(row.name, row.article_url);
-
-      if (!row.founders && extracted.founders) {
-        updates.founders = extracted.founders;
-        console.log(`  👥 Founders: ${extracted.founders}`);
-      }
-      if (!row.website && extracted.website) {
-        updates.website = extracted.website;
-        console.log(`  🌐 Website from article: ${extracted.website}`);
-      }
-    }
-
-    // DDG fallback if website still missing
-    if (!row.website && !updates.website) {
-      console.log(`  🔎 Searching DuckDuckGo...`);
-      await wait(1500);
-      const found = await searchWebsite(row.name);
-      if (found) {
-        updates.website = found;
-        console.log(`  🌐 Website from DDG: ${found}`);
-      } else {
-        console.log(`  ⚠️  No website found`);
-      }
-    }
-
-    if (Object.keys(updates).length > 0) {
-      const { error: updateError } = await supabase
-        .from('startups')
-        .update(updates)
-        .eq('id', row.id);
-
-      if (updateError) {
-        console.error(`  ❌ Update failed: ${updateError.message}`);
-      } else {
-        console.log(`  ✅ Updated`);
-      }
-    } else {
-      console.log(`  ⏭️  Nothing to update`);
-    }
-
-    await wait(2000);
   }
 
   console.log('\n✅ Backfill complete');

@@ -1,18 +1,25 @@
-
 const fs = require('fs');
 const envFile = fs.readFileSync('.env', 'utf8');
 envFile.split('\n').forEach(line => {
   const [key, value] = line.split('=');
   if (key && value) process.env[key.trim()] = value.trim();
 });
+
 const axios = require('axios');
 const xml2js = require('xml2js');
 const cheerio = require('cheerio');
-const { createClient } = require('@supabase/supabase-js');
 const Groq = require('groq-sdk');
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseHeaders = {
+  'apikey': supabaseKey,
+  'Authorization': `Bearer ${supabaseKey}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=minimal'
+};
 
 const RSS_FEEDS = [
   'https://yourstory.com/feed',
@@ -98,105 +105,75 @@ Article Content: ${article.description}
   }
 }
 
-// DuckDuckGo search fallback for website
 async function searchWebsite(startupName) {
-  try {
-    const query = encodeURIComponent(`${startupName} Indian startup official website`);
-    const response = await axios.get(`https://html.duckduckgo.com/html/?q=${query}`, {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept-Language': 'en-US,en;q=0.9'
-      }
-    });
+  const cleaned = startupName
+    .toLowerCase()
+    .replace(/\b(technologies|solutions|services|india|tech|ai|labs|ventures|innovations)\b/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
 
-    const $ = cheerio.load(response.data);
-    const results = [];
+  const candidates = [
+    `https://${cleaned}.com`,
+    `https://${cleaned}.in`,
+    `https://${cleaned}.io`,
+    `https://www.${cleaned}.com`,
+    `https://get${cleaned}.com`,
+    `https://try${cleaned}.com`,
+  ];
 
-    $('.result__url').each((i, el) => {
-      if (i < 5) results.push($(el).text().trim());
-    });
-
-    $('.result__a').each((i, el) => {
-      if (i < 5) {
-        const href = $(el).attr('href');
-        if (href) results.push(href);
-      }
-    });
-
-    const blocklist = [
-      'yourstory', 'inc42', 'entrackr', 'economictimes', 'techcrunch',
-      'moneycontrol', 'livemint', 'crunchbase', 'linkedin', 'twitter',
-      'facebook', 'instagram', 'wikipedia', 'startupnews', 'google',
-      'duckduckgo', 'bing', 'reddit', 'quora', 'glassdoor', 'ambitionbox',
-      'tracxn', 'zaubacorp', 'tofler', 'indiafilings', 'business-standard',
-      'thehindu', 'ndtv', 'zeebiz', 'vccircle'
-    ];
-
-    for (const r of results) {
-      const lower = r.toLowerCase();
-      const isBlocked = blocklist.some(b => lower.includes(b));
-      if (!isBlocked && (lower.includes('http') || lower.includes('.'))) {
-        let clean = r;
-        if (r.includes('uddg=')) {
-          clean = decodeURIComponent(r.split('uddg=')[1]);
-        }
-        try {
-          const url = new URL(clean.startsWith('http') ? clean : 'https://' + clean);
-          return url.origin;
-        } catch {
-          continue;
-        }
-      }
+  for (const url of candidates) {
+    try {
+      await axios.head(url, { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' } });
+      return url;
+    } catch (err) {
+      // try next
     }
-
-    return null;
-  } catch (err) {
-    console.error('  DDG search failed:', err.message);
-    return null;
   }
+
+  return null;
 }
 
 async function isDuplicate(articleUrl, startupName) {
-  const { data: urlCheck } = await supabase
-    .from('startups')
-    .select('id')
-    .eq('article_url', articleUrl)
-    .limit(1);
+  try {
+    const urlCheck = await axios.get(
+      `${supabaseUrl}/rest/v1/startups?article_url=eq.${encodeURIComponent(articleUrl)}&select=id&limit=1`,
+      { headers: supabaseHeaders }
+    );
+    if (urlCheck.data.length > 0) return true;
 
-  if (urlCheck && urlCheck.length > 0) return true;
-
-  if (startupName) {
-    const { data: nameCheck } = await supabase
-      .from('startups')
-      .select('id')
-      .ilike('name', startupName.trim())
-      .limit(1);
-
-    if (nameCheck && nameCheck.length > 0) return true;
+    if (startupName) {
+      const nameCheck = await axios.get(
+        `${supabaseUrl}/rest/v1/startups?name=ilike.${encodeURIComponent(startupName.trim())}&select=id&limit=1`,
+        { headers: supabaseHeaders }
+      );
+      if (nameCheck.data.length > 0) return true;
+    }
+  } catch (err) {
+    console.error('Duplicate check failed:', err.message);
   }
 
   return false;
 }
 
 async function pushToSupabase(parsed, articleUrl, website) {
-  const { error } = await supabase
-    .from('startups')
-    .insert([{
-      name: parsed.startup_name,
-      founders: parsed.founders,
-      industry: parsed.industry,
-      stage: parsed.funding_stage,
-      description: parsed.description,
-      article_url: articleUrl,
-      website: website || null,
-      added_at: new Date().toISOString()
-    }]);
-
-  if (error) {
-    console.error('Supabase insert failed:', error.message);
-  } else {
+  try {
+    await axios.post(
+      `${supabaseUrl}/rest/v1/startups`,
+      {
+        name: parsed.startup_name,
+        founders: parsed.founders,
+        industry: parsed.industry,
+        stage: parsed.funding_stage,
+        description: parsed.description,
+        article_url: articleUrl,
+        website: website || null,
+        added_at: new Date().toISOString()
+      },
+      { headers: supabaseHeaders }
+    );
     console.log(`✅ Added: ${parsed.startup_name}`);
+  } catch (err) {
+    console.error('Supabase insert failed:', err.message);
   }
 }
 
@@ -255,11 +232,9 @@ async function main() {
         continue;
       }
 
-      // Use website from article if Groq found it, else search DDG
       let website = parsed.website || null;
       if (!website) {
         console.log(`🔎 Searching website for: ${parsed.startup_name}`);
-        await wait(1500);
         website = await searchWebsite(parsed.startup_name);
       }
       console.log(`🌐 Website: ${website}`);
