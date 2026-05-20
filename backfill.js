@@ -1,5 +1,4 @@
-const { default: fetch } = require('node-fetch');
-global.fetch = fetch;
+
 require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
