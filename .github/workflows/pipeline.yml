@@ -2,8 +2,8 @@ name: Daily Startup Pipeline
 
 on:
   schedule:
-    - cron: '30 2 * * *'  # 8am IST
-  workflow_dispatch:        # manual trigger
+    - cron: '30 2 * * *'
+  workflow_dispatch:
 
 jobs:
   run-pipeline:
@@ -12,22 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clean install
-        run: rm -rf node_modules package-lock.json
-
       - name: Setup Node.js
-        run: |
-          nvm install 20
-          nvm use 20
-          node --version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
-      - name: Check undici
-        run: npm list undici
-      - name: Patch undici
-        run: |
-          find . -path ./node_modules/undici/lib/web/webidl/index.js | xargs sed -i 's/webidl.is.File = webidl.util.MakeTypeAssertion(File)/webidl.is.File = () => false/g'
+
       - name: Run pipeline
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
