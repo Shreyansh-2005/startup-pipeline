@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { X, Calendar, Globe, FileText, ArrowRight, Users, Briefcase } from 'lucide-react';
+import { X, Calendar, Globe, FileText, ArrowRight, Users, Briefcase, Linkedin } from 'lucide-react';
 import OutreachGenerator from './OutreachGenerator';
 
-export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }) {
+export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, gmailToken, onConnectGmail }) {
   // Lock scroll on background when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -30,9 +30,9 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
     if (!dateStr) return 'N/A';
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-IN', {
+      return date.toLocaleDateString('en-US', {
         day: 'numeric',
-        month: 'short',
+        month: 'long',
         year: 'numeric',
       });
     } catch (e) {
@@ -80,11 +80,7 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
                     {startup.industry}
                   </span>
                 )}
-                {startup.stage && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                    {startup.stage}
-                  </span>
-                )}
+              {/* stage badge removed */}
               </div>
             </div>
 
@@ -95,17 +91,35 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
                   <Users className="w-3 h-3 text-zinc-500" />
                   Founders
                 </span>
-                <p className="text-xs text-zinc-300 font-medium">
+                <p className="text-xs text-zinc-300 font-medium truncate">
                   {startup.founders || 'Not specified'}
                 </p>
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-zinc-500" />
-                  Added On
+                  Added
                 </span>
                 <p className="text-xs text-zinc-300 font-medium">
-                  {formatDate(startup.added_at)}
+                  {startup.added_at ? `Added on ${formatDate(startup.added_at)}` : 'N/A'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
+                  <Briefcase className="w-3 h-3 text-zinc-500" />
+                  Founded
+                </span>
+                <p className="text-xs text-zinc-300 font-medium">
+                  {startup.year_founded || 'Not specified'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
+                  <Users className="w-3 h-3 text-zinc-500" />
+                  Employees
+                </span>
+                <p className="text-xs text-zinc-300 font-medium">
+                  {startup.employee_count || 'Not specified'}
                 </p>
               </div>
             </div>
@@ -113,9 +127,22 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
             {/* Description */}
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-zinc-300">About</h4>
-              <p className="text-sm text-zinc-400 leading-relaxed bg-zinc-900/10 p-3 rounded-xl border border-zinc-850">
-                {startup.description || 'No detailed description available.'}
-              </p>
+              <div className="text-sm text-zinc-400 leading-relaxed bg-zinc-900/10 p-4 rounded-xl border border-zinc-850 space-y-3">
+                <p>{startup.description || 'No detailed description available.'}</p>
+                {startup.article_url && (
+                  <div className="text-xs border-t border-zinc-800/80 pt-3 flex items-center justify-between">
+                    <span className="text-zinc-500">Information source:</span>
+                    <a
+                      href={startup.article_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 hover:text-indigo-300 hover:underline inline-flex items-center gap-1 font-medium text-xs"
+                    >
+                      Source Article <FileText className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Links Section */}
@@ -136,16 +163,16 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
                     <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
                   </a>
                 )}
-                {startup.article_url && (
+                {startup.linkedin_url && (
                   <a
-                    href={startup.article_url}
+                    href={startup.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/50 hover:bg-indigo-600/5 border border-zinc-850 hover:border-indigo-500/20 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-all group"
                   >
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-zinc-500" />
-                      <span>Source Article</span>
+                      <Linkedin className="w-4 h-4 text-zinc-500" />
+                      <span>LinkedIn Profile</span>
                     </div>
                     <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
                   </a>
@@ -157,6 +184,8 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile }
             <OutreachGenerator 
               startup={startup}
               onOpenProfile={onOpenProfile}
+              gmailToken={gmailToken}
+              onConnectGmail={onConnectGmail}
             />
 
           </div>

@@ -1,12 +1,105 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Copy, Check, AlertCircle, Edit, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { Sparkles, Copy, Check, AlertCircle, Edit, RefreshCw, Mail } from 'lucide-react';
+import toast from 'react-hot-toast';
+import SendEmailModal from './SendEmailModal';
 
-export default function OutreachGenerator({ startup, onOpenProfile }) {
+export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, onConnectGmail }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  
+  // Gmail Send States
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Parser helper
+  const parseOutreachMessage = (text) => {
+    const lines = text.split('\n');
+    let subject = `Outreach for ${startup.name}`;
+    let bodyLines = [];
+    let foundSubject = false;
+
+    for (let line of lines) {
+      if (!foundSubject && line.toLowerCase().startsWith('subject:')) {
+        subject = line.substring(8).trim();
+        foundSubject = true;
+      } else {
+        bodyLines.push(line);
+      }
+    }
+
+    const body = bodyLines.join('\n').trim();
+    return { subject, body };
+  };
+
+  // Base64url helper
+  const makeEmailRaw = (to, subject, bodyText) => {
+    const utf8Subject = `=?utf-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
+    const email = [
+      `To: ${to}`,
+      `Subject: ${utf8Subject}`,
+      'Content-Type: text/html; charset=utf-8',
+      'MIME-Version: 1.0',
+      '',
+      bodyText.replace(/\n/g, '<br>')
+    ].join('\r\n');
+
+    return btoa(unescape(encodeURIComponent(email)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+
+  // Gmail API sending handler
+  const handleSendEmail = async (recipientEmail) => {
+    setSendingEmail(true);
+    try {
+      const parsed = parseOutreachMessage(message);
+      const rawEmail = makeEmailRaw(recipientEmail, parsed.subject, parsed.body);
+
+      const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${gmailToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          raw: rawEmail
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData?.error?.message || `Gmail API returned status ${response.status}`);
+      }
+
+      toast.success('Email sent successfully!');
+      setIsEmailModalOpen(false);
+    } catch (err) {
+      console.error('Failed to send email:', err);
+      toast.error(`Failed to send email: ${err.message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleGmailButtonClick = () => {
+    if (!gmailToken) {
+      toast.error('Connect Gmail first');
+      const connectBtn = document.getElementById('connect-gmail-btn');
+      if (connectBtn) {
+        connectBtn.scrollIntoView({ behavior: 'smooth' });
+        connectBtn.classList.add('ring-4', 'ring-emerald-500/50', 'scale-105', 'animate-pulse');
+        setTimeout(() => {
+          connectBtn.classList.remove('ring-4', 'ring-emerald-500/50', 'scale-105', 'animate-pulse');
+        }, 3000);
+      }
+      return;
+    }
+
+    setIsEmailModalOpen(true);
+  };
 
   // Check if profile exists
   useEffect(() => {
@@ -23,7 +116,7 @@ export default function OutreachGenerator({ startup, onOpenProfile }) {
   }, [startup]); // Reload check on startup change
 
   const checkProfileCompleteness = (profile) => {
-    return profile && profile.name && profile.college && profile.skills && profile.targetRole;
+    return profile && profile.name && profile.college && profile.skills && profile.target_role;
   };
 
   const handleGenerate = async () => {
@@ -62,19 +155,18 @@ User Profile:
 - Name: ${parsedProfile.name}
 - College: ${parsedProfile.college}
 - Skills: ${parsedProfile.skills}
-- Target Role: ${parsedProfile.targetRole}
+- Target Role: ${parsedProfile.target_role}
 
 Startup Profile:
 - Startup Name: ${startup.name}
 - Founders: ${startup.founders || 'the founders'}
 - Industry: ${startup.industry || 'Tech'}
-- Stage: ${startup.stage || 'Seed'}
 - Description: ${startup.description || 'a fast-growing startup'}
 
 Outreach Rules:
 1. Subject line: Write a highly catchy, short subject line (e.g. "React dev at ${parsedProfile.college} - interested in ${startup.name}").
 2. Salutation: Address ${startup.founders ? startup.founders.split(',')[0].trim() : 'Founder'} by their first name.
-3. Hook: Connect the user's background (${parsedProfile.college}, ${parsedProfile.targetRole}) with ${startup.name}'s mission or industry (${startup.industry}). Highlight something brief about their description.
+3. Hook: Connect the user's background (${parsedProfile.college}, ${parsedProfile.target_role}) with ${startup.name}'s mission or industry (${startup.industry}). Highlight something brief about their description.
 4. Value Proposition: Show how the user's skills (${parsedProfile.skills}) can directly add value to ${startup.name} (suggest a concrete, quick idea or project area relevant to ${startup.name}).
 5. Call to Action (CTA): Propose a brief 10-15 minute chat. Do NOT ask for a job directly; ask to learn more or show how they can help.
 6. Tone: Keep it professional yet enthusiastic, respectful, and ultra-short (less than 150 words). Avoid generic buzzwords.
@@ -88,7 +180,7 @@ Outreach Rules:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'llama3-70b-8192',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
@@ -157,7 +249,7 @@ Outreach Rules:
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-zinc-500">
-              Personalizing for <strong className="text-zinc-300 font-semibold">{parsed.name}</strong> ({parsed.targetRole})
+              Personalizing for <strong className="text-zinc-300 font-semibold">{parsed.name}</strong> ({parsed.target_role})
             </span>
             <button
               onClick={onOpenProfile}
@@ -181,7 +273,7 @@ Outreach Rules:
             <div className="p-6 rounded-xl bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center gap-3 text-center">
               <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" />
               <div className="space-y-1">
-                <span className="text-xs text-zinc-300 font-medium">Generating draft using Llama3...</span>
+                <span className="text-xs text-zinc-300 font-medium">Generating draft using Llama 3.3...</span>
                 <p className="text-[10px] text-zinc-500">Analyzing startup details and matching skills...</p>
               </div>
             </div>
@@ -223,10 +315,27 @@ Outreach Rules:
                   {message}
                 </pre>
               </div>
+
+              {/* Send via Gmail Button */}
+              <button
+                onClick={handleGmailButtonClick}
+                className="w-full mt-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/10 border border-emerald-500/20 hover:border-emerald-500/35 transition-all cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Send via Gmail</span>
+              </button>
             </div>
           )}
         </div>
       )}
+
+      {/* Recipient Email Address Input Modal */}
+      <SendEmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        onSend={handleSendEmail}
+        sending={sendingEmail}
+      />
     </div>
   );
 }

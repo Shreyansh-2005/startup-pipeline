@@ -4,8 +4,10 @@ import Navbar from './components/Navbar';
 import StartupCard from './components/StartupCard';
 import DetailDrawer from './components/DetailDrawer';
 import ProfileModal from './components/ProfileModal';
-import { Toaster, toast } from 'sonner';
+import { Toaster, toast } from 'react-hot-toast';
 import { Search, Filter, RotateCcw, AlertTriangle, Briefcase, Plus, ExternalLink } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 
 function CardSkeleton() {
   return (
@@ -16,7 +18,6 @@ function CardSkeleton() {
           <div className="h-7 w-7 bg-zinc-800 rounded-lg"></div>
         </div>
         <div className="flex gap-2 mb-4">
-          <div className="h-5 w-16 bg-zinc-850 rounded-full"></div>
           <div className="h-5 w-16 bg-zinc-850 rounded-full"></div>
         </div>
         <div className="h-4 w-40 bg-zinc-850 rounded mb-2"></div>
@@ -37,10 +38,57 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('feed'); // 'feed'
 
+  // Gmail OAuth states
+  const [gmailToken, setGmailToken] = useState(localStorage.getItem('gmail_access_token') || null);
+  const [gmailUser, setGmailUser] = useState(() => {
+    const savedProfile = localStorage.getItem('gmail_user_profile');
+    if (savedProfile) {
+      try {
+        return JSON.parse(savedProfile);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  // Google Login Handler
+  const loginGmail = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const accessToken = tokenResponse.access_token;
+      localStorage.setItem('gmail_access_token', accessToken);
+      setGmailToken(accessToken);
+      toast.success('Gmail connected successfully!');
+
+      // Fetch user details
+      try {
+        const userInfo = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        localStorage.setItem('gmail_user_profile', JSON.stringify(userInfo.data));
+        setGmailUser(userInfo.data);
+      } catch (err) {
+        console.error('Failed to fetch Google user info:', err);
+      }
+    },
+    onError: (error) => {
+      console.error('Google login failed:', error);
+      toast.error('Failed to connect Gmail');
+    },
+    scope: 'https://www.googleapis.com/auth/gmail.send'
+  });
+
+  const handleDisconnectGmail = () => {
+    localStorage.removeItem('gmail_access_token');
+    localStorage.removeItem('gmail_user_profile');
+    setGmailToken(null);
+    setGmailUser(null);
+    toast.success('Disconnected from Gmail');
+  };
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedStage, setSelectedStage] = useState('');
 
   // Fetch startups
   const fetchStartups = async () => {
@@ -67,20 +115,15 @@ export default function App() {
     fetchStartups();
   }, []);
 
-  // Dynamically extract unique industries and stages for dropdown filters
-  const { industries, stages } = useMemo(() => {
+  // Dynamically extract unique industries for dropdown filter
+  const industries = useMemo(() => {
     const indSet = new Set();
-    const stgSet = new Set();
     
     startups.forEach(s => {
       if (s.industry) indSet.add(s.industry.trim());
-      if (s.stage) stgSet.add(s.stage.trim());
     });
 
-    return {
-      industries: Array.from(indSet).sort(),
-      stages: Array.from(stgSet).sort()
-    };
+    return Array.from(indSet).sort();
   }, [startups]);
 
   // Filter and search logic
@@ -93,30 +136,30 @@ export default function App() {
         s.founders?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesIndustry = !selectedIndustry || s.industry === selectedIndustry;
-      const matchesStage = !selectedStage || s.stage === selectedStage;
 
-      return matchesSearch && matchesIndustry && matchesStage;
+      return matchesSearch && matchesIndustry;
     });
-  }, [startups, searchQuery, selectedIndustry, selectedStage]);
+  }, [startups, searchQuery, selectedIndustry]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedIndustry('');
-    setSelectedStage('');
     toast.success('Filters cleared');
   };
 
-  const isFilterActive = searchQuery || selectedIndustry || selectedStage;
+  const isFilterActive = searchQuery || selectedIndustry;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-indigo-500 selection:text-white">
-      {/* Sonner toast provider */}
-      <Toaster position="bottom-right" theme="dark" toastOptions={{
+      {/* react-hot-toast provider */}
+      <Toaster position="bottom-right" toastOptions={{
         style: {
-          background: 'rgba(24, 24, 27, 0.9)',
+          background: 'rgba(24, 24, 27, 0.95)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           color: '#f4f4f5',
           backdropFilter: 'blur(8px)',
+          fontSize: '13px',
+          borderRadius: '12px',
         }
       }} />
 
@@ -126,6 +169,9 @@ export default function App() {
         onOpenProfile={() => setIsProfileOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        gmailUser={gmailUser}
+        onConnectGmail={loginGmail}
+        onDisconnectGmail={handleDisconnectGmail}
       />
 
       {/* Main Feed Content */}
@@ -174,22 +220,7 @@ export default function App() {
             </span>
           </div>
 
-          {/* Stage Filter dropdown */}
-          <div className="w-full md:w-48 relative">
-            <select
-              value={selectedStage}
-              onChange={(e) => setSelectedStage(e.target.value)}
-              className="w-full appearance-none bg-zinc-900/50 border border-zinc-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 px-3 pr-8 text-sm text-zinc-300 outline-none cursor-pointer transition-all"
-            >
-              <option value="">All Stages</option>
-              {stages.map(stg => (
-                <option key={stg} value={stg}>{stg}</option>
-              ))}
-            </select>
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-zinc-500">
-              <Filter className="w-3.5 h-3.5" />
-            </span>
-          </div>
+          {/* Stage filter removed */}
 
           {/* Clear button */}
           {isFilterActive && (
@@ -287,6 +318,8 @@ export default function App() {
           setSelectedStartup(null);
           setIsProfileOpen(true);
         }}
+        gmailToken={gmailToken}
+        onConnectGmail={loginGmail}
       />
 
       {/* Profile Form Modal */}

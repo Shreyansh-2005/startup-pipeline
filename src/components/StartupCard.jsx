@@ -1,14 +1,25 @@
 import React from 'react';
-import { ExternalLink, Users, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Users, ArrowUpRight, Linkedin } from 'lucide-react';
 
 export default function StartupCard({ startup, onClick }) {
-  const { name, industry, stage, founders, description, website } = startup;
+  const { 
+    name, 
+    industry, 
+    founders, 
+    description, 
+    website, 
+    year_founded, 
+    employee_count, 
+    linkedin_url 
+  } = startup;
 
   // Formatting helpers
   const cleanUrl = (url) => {
     if (!url) return '';
     return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
   };
+
+  const hasMeta = year_founded || employee_count;
 
   return (
     <div 
@@ -29,51 +40,77 @@ export default function StartupCard({ startup, onClick }) {
           </span>
         </div>
 
-        {/* Badges: Industry + Stage */}
+        {/* Badges: Industry */}
         <div className="flex flex-wrap gap-2 mb-4">
           {industry && (
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
               {industry}
             </span>
           )}
-          {stage && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-purple-500/10 text-purple-300 border border-purple-500/20">
-              {stage}
-            </span>
-          )}
         </div>
 
-        {/* Founders */}
+        {/* Founders (muted text) */}
         {founders && (
-          <div className="flex items-center gap-1.5 mb-3 text-xs text-zinc-400">
-            <Users className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+          <div className="flex items-center gap-1.5 mb-3 text-xs text-zinc-550 text-zinc-500">
+            <Users className="w-3.5 h-3.5 text-zinc-650 text-zinc-500 flex-shrink-0" />
             <span className="truncate">
-              <span className="text-zinc-500">Founders:</span> {founders}
+              <span className="text-zinc-600 text-zinc-500 font-medium">Founders:</span> {founders}
             </span>
           </div>
         )}
 
         {/* Short Description (truncated to 2 lines) */}
-        <p className="text-sm text-zinc-400 leading-relaxed mb-5 line-clamp-2">
+        <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">
           {description || "No description provided."}
         </p>
+
+        {/* Founded & Employees Info Row */}
+        {hasMeta && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs border-t border-zinc-900/60 pt-3 mb-4 text-zinc-500">
+            {year_founded && (
+              <div>
+                <span>Founded:</span> <span className="text-zinc-300 font-medium">{year_founded}</span>
+              </div>
+            )}
+            {employee_count && (
+              <div>
+                <span>Employees:</span> <span className="text-zinc-300 font-medium">{employee_count}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Website Link (Footer) */}
-      {website ? (
-        <a 
-          href={website}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline mt-auto w-fit"
-        >
-          <span>{cleanUrl(website)}</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
-      ) : (
-        <span className="text-xs text-zinc-600 mt-auto">No website URL</span>
-      )}
+      {/* Card Footer: Website & LinkedIn */}
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-900/60">
+        {website ? (
+          <a 
+            href={website}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline w-fit"
+          >
+            <span>{cleanUrl(website)}</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        ) : (
+          <span className="text-xs text-zinc-650">No website URL</span>
+        )}
+
+        {linkedin_url && (
+          <a 
+            href={linkedin_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-indigo-400 border border-zinc-800 hover:border-indigo-500/20 transition-all duration-200"
+            title="LinkedIn Profile"
+          >
+            <Linkedin className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
     </div>
   );
 }

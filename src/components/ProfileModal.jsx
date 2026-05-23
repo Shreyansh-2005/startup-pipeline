@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, GraduationCap, Code, Briefcase, User } from 'lucide-react';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 
 export default function ProfileModal({ isOpen, onClose }) {
   const [profile, setProfile] = useState({
     name: '',
     college: '',
     skills: '',
-    targetRole: ''
+    target_role: ''
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function ProfileModal({ isOpen, onClose }) {
     e.preventDefault();
     
     // Check if fields are empty
-    if (!profile.name.trim() || !profile.college.trim() || !profile.skills.trim() || !profile.targetRole.trim()) {
+    if (!profile.name.trim() || !profile.college.trim() || !profile.skills.trim() || !profile.target_role.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -118,8 +118,8 @@ export default function ProfileModal({ isOpen, onClose }) {
               </span>
               <input
                 type="text"
-                value={profile.targetRole}
-                onChange={(e) => setProfile({ ...profile, targetRole: e.target.value })}
+                value={profile.target_role}
+                onChange={(e) => setProfile({ ...profile, target_role: e.target.value })}
                 placeholder="e.g. Software Engineer Intern"
                 className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-all"
                 required
