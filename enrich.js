@@ -1,10 +1,34 @@
-import { createClient } from '@supabase/supabase-js';
-
 const SUPABASE_URL = 'https://coohoqzpvxtdcqflwvaw.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const APOLLO_KEY = process.env.APOLLO_API_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+async function supabaseSelect() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/startups?select=id,name,website&website=not.is.null&year_founded=is.null`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return res.json();
+}
+
+async function supabaseUpdate(id, update) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/startups?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(update)
+  });
+  return res.ok;
+}
 
 function extractDomain(website) {
   try {
@@ -56,19 +80,14 @@ async function enrichStartup(startup) {
       linkedin_url: org.linkedin_url ?? null,
     };
 
-    const { error } = await supabase
-      .from('startups')
-      .update(update)
-      .eq('id', startup.id);
-
-    if (error) {
-      console.log(`❌ Supabase update failed for ${startup.name}:`, error.message);
+    const ok = await supabaseUpdate(startup.id, update);
+    if (!ok) {
+      console.log(`❌ Supabase update failed for ${startup.name}`);
     } else {
-      console.log(`✅ ${startup.name} | Founded: ${update.year_founded} | Employees: ${update.employee_count} | LinkedIn: ${update.linkedin_url}`);
+      console.log(`✅ ${startup.name} | Founded: ${update.year_founded} | Employees: ${update.employee_count}`);
     }
 
-    // Respect Apollo rate limits
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 2000));
 
   } catch (err) {
     console.log(`❌ Error enriching ${startup.name}:`, err.message);
@@ -76,14 +95,10 @@ async function enrichStartup(startup) {
 }
 
 async function run() {
-  const { data: startups, error } = await supabase
-    .from('startups')
-    .select('id, name, website')
-    .not('website', 'is', null)
-    .is('year_founded', null);
+  const startups = await supabaseSelect();
 
-  if (error) {
-    console.error('Failed to fetch startups:', error.message);
+  if (!Array.isArray(startups)) {
+    console.error('Failed to fetch startups:', startups);
     process.exit(1);
   }
 
