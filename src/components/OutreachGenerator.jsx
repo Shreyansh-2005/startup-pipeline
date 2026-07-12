@@ -34,21 +34,58 @@ export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, 
   };
 
   // Base64url helper
-  const makeEmailRaw = (to, subject, bodyText) => {
+  const makeEmailRaw = (to, subject, bodyText, resumeBase64, resumeFilename) => {
     const utf8Subject = `=?utf-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
-    const email = [
-      `To: ${to}`,
-      `Subject: ${utf8Subject}`,
-      'Content-Type: text/html; charset=utf-8',
-      'MIME-Version: 1.0',
-      '',
-      bodyText.replace(/\n/g, '<br>')
-    ].join('\r\n');
 
-    return btoa(unescape(encodeURIComponent(email)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+    if (resumeBase64 && resumeFilename) {
+      // Build multipart/mixed email
+      const boundary = `startup_compass_boundary_${Math.random().toString(36).substring(2)}`;
+      
+      const emailParts = [
+        `To: ${to}`,
+        `Subject: ${utf8Subject}`,
+        'MIME-Version: 1.0',
+        `Content-Type: multipart/mixed; boundary="${boundary}"`,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/plain; charset=utf-8',
+        'Content-Transfer-Encoding: 7bit',
+        '',
+        bodyText,
+        '',
+        `--${boundary}`,
+        `Content-Type: application/pdf; name="${resumeFilename}"`,
+        `Content-Disposition: attachment; filename="${resumeFilename}"`,
+        'Content-Transfer-Encoding: base64',
+        '',
+        resumeBase64,
+        '',
+        `--${boundary}--`
+      ];
+
+      const emailStr = emailParts.join('\r\n');
+      return btoa(unescape(encodeURIComponent(emailStr)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    } else {
+      // Build plain text email
+      const emailParts = [
+        `To: ${to}`,
+        `Subject: ${utf8Subject}`,
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=utf-8',
+        'Content-Transfer-Encoding: 7bit',
+        '',
+        bodyText
+      ];
+
+      const emailStr = emailParts.join('\r\n');
+      return btoa(unescape(encodeURIComponent(emailStr)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    }
   };
 
   // Gmail API sending handler
@@ -56,7 +93,12 @@ export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, 
     setSendingEmail(true);
     try {
       const parsed = parseOutreachMessage(message);
-      const rawEmail = makeEmailRaw(recipientEmail, parsed.subject, parsed.body);
+
+      // Check if resume exists in localStorage
+      const resumeBase64 = localStorage.getItem('resume_base64') || null;
+      const resumeFilename = localStorage.getItem('resume_filename') || null;
+
+      const rawEmail = makeEmailRaw(recipientEmail, parsed.subject, parsed.body, resumeBase64, resumeFilename);
 
       const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
         method: 'POST',
