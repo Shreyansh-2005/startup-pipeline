@@ -70,7 +70,7 @@ async function fetchArticleContent(url) {
 async function parseWithGroq(article) {
   try {
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 500,
       messages: [{
         role: 'user',
@@ -163,7 +163,6 @@ async function pushToSupabase(parsed, articleUrl, website) {
         name: parsed.startup_name,
         founders: parsed.founders,
         industry: parsed.industry,
-        stage: parsed.funding_stage,
         description: parsed.description,
         article_url: articleUrl,
         website: website || null,
