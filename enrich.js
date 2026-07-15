@@ -1,6 +1,7 @@
 const SUPABASE_URL = 'https://coohoqzpvxtdcqflwvaw.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const APOLLO_KEY = process.env.APOLLO_API_KEY;
+const HUNTER_KEY = process.env.HUNTER_API_KEY;
 
 async function supabaseSelect() {
   const res = await fetch(
@@ -29,20 +30,31 @@ async function supabaseUpdate(id, update) {
   });
   return res.ok;
 }
+
 async function getEmailFromHunter(domain, firstName) {
+  if (!HUNTER_KEY) {
+    console.log('⚠️ No Hunter API key — skipping email lookup');
+    return null;
+  }
   try {
-    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&api_key=${process.env.HUNTER_API_KEY}`;
+    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&api_key=${HUNTER_KEY}`;
     const res = await fetch(url);
-    
+
     if (res.status === 429) {
-      console.log('⚠️ Hunter free limit reached — skipping email lookup this month');
+      console.log('⚠️ Hunter free limit reached — skipping for now');
       return null;
     }
-    if (!res.ok) return null;
-    
+    if (!res.ok) {
+      console.log(`⚠️ Hunter error: ${res.status}`);
+      return null;
+    }
+
     const data = await res.json();
-    return data.data?.email || null;
-  } catch {
+    const email = data.data?.email || null;
+    console.log(`📧 Hunter result for ${domain} (${firstName}): ${email}`);
+    return email;
+  } catch (err) {
+    console.log(`⚠️ Hunter exception: ${err.message}`);
     return null;
   }
 }
@@ -73,6 +85,7 @@ async function enrichStartup(startup) {
       },
       body: JSON.stringify({
         q_organization_domains: domain,
+        organization_locations: ['India'],
         page: 1,
         per_page: 1
       })
@@ -80,44 +93,42 @@ async function enrichStartup(startup) {
 
     if (!res.ok) {
       console.log(`⚠️  Apollo error for ${startup.name}: ${res.status}`);
-      return;
-    }
-
-    const data = await res.json();
-    const org = data.organizations?.[0];
-
-    if (!org) {
-      console.log(`❌ Not found on Apollo: ${startup.name} (${domain})`);
-      return;
-    }
-
-    const update = {
-      year_founded: org.founded_year?.toString() ?? null,
-      employee_count: org.estimated_num_employees?.toString() ?? null,
-      linkedin_url: org.linkedin_url ?? null,
-    };
-
-    const ok = await supabaseUpdate(startup.id, update);
-    if (!ok) {
-      console.log(`❌ Supabase update failed for ${startup.name}`);
     } else {
-      console.log(`✅ ${startup.name} | Founded: ${update.year_founded} | Employees: ${update.employee_count}`);
+      const data = await res.json();
+      const org = data.organizations?.[0];
+
+      if (!org) {
+        console.log(`❌ Not found on Apollo: ${startup.name} (${domain})`);
+      } else {
+        const update = {
+          year_founded: org.founded_year?.toString() ?? null,
+          employee_count: org.estimated_num_employees?.toString() ?? null,
+          linkedin_url: org.linkedin_url ?? null,
+        };
+
+        const ok = await supabaseUpdate(startup.id, update);
+        if (!ok) {
+          console.log(`❌ Supabase update failed for ${startup.name}`);
+        } else {
+          console.log(`✅ ${startup.name} | Founded: ${update.year_founded} | Employees: ${update.employee_count}`);
+        }
+      }
     }
 
     await new Promise(r => setTimeout(r, 2000));
 
   } catch (err) {
-    console.log(`❌ Error enriching ${startup.name}:`, err.message);
+    console.log(`❌ Apollo error for ${startup.name}:`, err.message);
   }
-  // Try Hunter.io for email if we have founders and domain
+
+  // Hunter email lookup — runs regardless of Apollo result
   if (startup.founders && domain) {
-  const firstName = startup.founders.split(',')[0].split(' ')[0].trim();
-  const email = await getEmailFromHunter(domain, firstName);
-  if (email) {
-    await supabaseUpdate(startup.id, { founder_email: email });
-    console.log(`📧 Found email for ${startup.name}: ${email}`);
+    const firstName = startup.founders.split(',')[0].split(' ')[0].trim();
+    const email = await getEmailFromHunter(domain, firstName);
+    if (email) {
+      await supabaseUpdate(startup.id, { founder_email: email });
+    }
   }
-}
 }
 
 async function run() {
