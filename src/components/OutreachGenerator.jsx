@@ -377,6 +377,7 @@ Outreach Rules:
         onClose={() => setIsEmailModalOpen(false)}
         onSend={handleSendEmail}
         sending={sendingEmail}
+        founderEmail={startup?.founder_email}
       />
     </div>
   );

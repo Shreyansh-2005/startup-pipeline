@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Send, Loader2 } from 'lucide-react';
 
-export default function SendEmailModal({ isOpen, onClose, onSend, sending }) {
+export default function SendEmailModal({ isOpen, onClose, onSend, sending, founderEmail }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setEmail(founderEmail || '');
+      setError('');
+    }
+  }, [isOpen, founderEmail]);
 
   if (!isOpen) return null;
 

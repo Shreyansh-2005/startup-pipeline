@@ -4,7 +4,7 @@ const APOLLO_KEY = process.env.APOLLO_API_KEY;
 
 async function supabaseSelect() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/startups?select=id,name,website&website=not.is.null&year_founded=is.null`,
+    `${SUPABASE_URL}/rest/v1/startups?select=id,name,website,founders&website=not.is.null&founder_email=is.null`,
     {
       headers: {
         apikey: SUPABASE_KEY,
@@ -110,7 +110,7 @@ async function enrichStartup(startup) {
     console.log(`❌ Error enriching ${startup.name}:`, err.message);
   }
   // Try Hunter.io for email if we have founders and domain
-  if (startup.founders && update.linkedin_url) {
+  if (startup.founders && domain) {
   const firstName = startup.founders.split(',')[0].split(' ')[0].trim();
   const email = await getEmailFromHunter(domain, firstName);
   if (email) {

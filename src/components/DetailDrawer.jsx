@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Calendar, Globe, FileText, ArrowRight, Users, Briefcase, Linkedin } from 'lucide-react';
+import { X, Calendar, Globe, FileText, ArrowRight, Users, Briefcase, Linkedin, Mail } from 'lucide-react';
 import OutreachGenerator from './OutreachGenerator';
 
 export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, gmailToken, onConnectGmail }) {
@@ -122,6 +122,20 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
                   {startup.employee_count || 'Not specified'}
                 </p>
               </div>
+              {startup.founder_email && (
+                <div className="space-y-1 col-span-2 border-t border-zinc-800/60 pt-3 mt-1">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-zinc-500" />
+                    Founder Email
+                  </span>
+                  <a 
+                    href={`mailto:${startup.founder_email}`}
+                    className="text-xs text-indigo-400 hover:text-indigo-300 hover:underline font-medium block truncate"
+                  >
+                    {startup.founder_email}
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Description */}
