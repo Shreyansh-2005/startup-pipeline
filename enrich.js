@@ -29,6 +29,23 @@ async function supabaseUpdate(id, update) {
   });
   return res.ok;
 }
+async function getEmailFromHunter(domain, firstName) {
+  try {
+    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&api_key=${process.env.HUNTER_API_KEY}`;
+    const res = await fetch(url);
+    
+    if (res.status === 429) {
+      console.log('⚠️ Hunter free limit reached — skipping email lookup this month');
+      return null;
+    }
+    if (!res.ok) return null;
+    
+    const data = await res.json();
+    return data.data?.email || null;
+  } catch {
+    return null;
+  }
+}
 
 function extractDomain(website) {
   try {
@@ -92,6 +109,15 @@ async function enrichStartup(startup) {
   } catch (err) {
     console.log(`❌ Error enriching ${startup.name}:`, err.message);
   }
+  // Try Hunter.io for email if we have founders and domain
+  if (startup.founders && update.linkedin_url) {
+  const firstName = startup.founders.split(',')[0].split(' ')[0].trim();
+  const email = await getEmailFromHunter(domain, firstName);
+  if (email) {
+    await supabaseUpdate(startup.id, { founder_email: email });
+    console.log(`📧 Found email for ${startup.name}: ${email}`);
+  }
+}
 }
 
 async function run() {

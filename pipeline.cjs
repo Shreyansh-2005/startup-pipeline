@@ -88,6 +88,8 @@ Fields:
 - funding_stage (string: extract exactly as mentioned e.g. "Series A", "Seed", "Pre-Series A" or null)
 - description (string, one line or null)
 - website (string, official startup website URL only if explicitly mentioned in the article, or null)
+- founder_email (string, founder's email if explicitly mentioned in article, or null)
+- founder_linkedin (string, founder's LinkedIn URL if mentioned, or null)
 
 Article Title: ${article.title}
 Article Content: ${article.description}
@@ -166,7 +168,9 @@ async function pushToSupabase(parsed, articleUrl, website) {
         description: parsed.description,
         article_url: articleUrl,
         website: website || null,
-        added_at: new Date().toISOString()
+        added_at: new Date().toISOString(),
+        founder_email: parsed.founder_email || null,
+        founder_linkedin: parsed.founder_linkedin || null,
       },
       { headers: supabaseHeaders }
     );
