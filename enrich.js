@@ -31,13 +31,13 @@ async function supabaseUpdate(id, update) {
   return res.ok;
 }
 
-async function getEmailFromHunter(domain, firstName) {
+async function getEmailFromHunter(domain, firstName,lastName) {
   if (!HUNTER_KEY) {
     console.log('⚠️ No Hunter API key — skipping email lookup');
     return null;
   }
   try {
-    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&api_key=${HUNTER_KEY}`;
+    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${HUNTER_KEY}`;
     const res = await fetch(url);
 
     if (res.status === 429) {
@@ -84,10 +84,9 @@ async function enrichStartup(startup) {
         'X-Api-Key': APOLLO_KEY
       },
       body: JSON.stringify({
-        q_organization_domains: domain,
-        organization_locations: ['India'],
-        page: 1,
-        per_page: 1
+      q_organization_domains: domain,
+      page: 1,
+      per_page: 1
       })
     });
 
@@ -115,7 +114,7 @@ async function enrichStartup(startup) {
       }
     }
 
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 4000));
 
   } catch (err) {
     console.log(`❌ Apollo error for ${startup.name}:`, err.message);
@@ -123,8 +122,11 @@ async function enrichStartup(startup) {
 
   // Hunter email lookup — runs regardless of Apollo result
   if (startup.founders && domain) {
-    const firstName = startup.founders.split(',')[0].split(' ')[0].trim();
-    const email = await getEmailFromHunter(domain, firstName);
+    const fullName = startup.founders.split(',')[0].trim();
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts[1] || '';
+    const email = await getEmailFromHunter(domain, firstName, lastName);
     if (email) {
       await supabaseUpdate(startup.id, { founder_email: email });
     }
