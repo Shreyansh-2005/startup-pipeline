@@ -120,7 +120,7 @@ export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, 
       setIsEmailModalOpen(false);
     } catch (err) {
       console.error('Failed to send email:', err);
-      toast.error(`Failed to send email: ${err.message}`);
+      toast.error("Couldn't send the email. Please try again.");
     } finally {
       setSendingEmail(false);
     }
@@ -178,8 +178,7 @@ export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, 
 
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
     if (!apiKey) {
-      toast.error('Groq API Key is missing. Please set VITE_GROQ_API_KEY in your env configuration.');
-      setMessage('Error: VITE_GROQ_API_KEY is not defined. Please add VITE_GROQ_API_KEY to your `.env.local` file and restart the development server.');
+      setMessage('Something went wrong. Please try again in a moment.');
       return;
     }
 
@@ -243,8 +242,7 @@ Outreach Rules:
       toast.success('Outreach message generated successfully!');
     } catch (err) {
       console.error('Groq generation error:', err);
-      toast.error(`Generation failed: ${err.message}`);
-      setMessage(`Failed to generate outreach: ${err.message}. Make sure your Groq API Key is valid.`);
+      setMessage('Something went wrong. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
@@ -377,7 +375,7 @@ Outreach Rules:
         onClose={() => setIsEmailModalOpen(false)}
         onSend={handleSendEmail}
         sending={sendingEmail}
-        founderEmail={startup?.founder_email}
+        startup={startup}
       />
     </div>
   );

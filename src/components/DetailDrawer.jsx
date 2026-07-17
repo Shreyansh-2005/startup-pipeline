@@ -53,13 +53,13 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
         <div className="w-screen max-w-lg glass-drawer shadow-2xl flex flex-col animate-in slide-in-from-right duration-350 ease-out">
           
           {/* Header */}
-          <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-zinc-100 truncate pr-4">
+          <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100 truncate pr-4">
               Startup Details
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-all cursor-pointer"
+              className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-all cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -70,13 +70,13 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
             
             {/* Startup Identity */}
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-zinc-100 to-indigo-300">
+              <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-zinc-800 to-violet-800 dark:from-indigo-200 dark:via-zinc-100 dark:to-indigo-300">
                 {startup.name}
               </h3>
               
               <div className="flex flex-wrap gap-2">
                 {startup.industry && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">
                     {startup.industry}
                   </span>
                 )}
@@ -85,22 +85,30 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
             </div>
 
             {/* Quick Metadata Grid */}
-            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-zinc-900/40 border border-zinc-800/60">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/60">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
                   <Users className="w-3 h-3 text-zinc-500" />
                   Founders
                 </span>
-                <p className="text-xs text-zinc-300 font-medium truncate">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium truncate">
                   {startup.founders || 'Not specified'}
                 </p>
+                {startup.founder_email && (
+                  <a 
+                    href={`mailto:${startup.founder_email}`}
+                    className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline font-medium block truncate mt-0.5"
+                  >
+                    {startup.founder_email}
+                  </a>
+                )}
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-zinc-500" />
                   Added
                 </span>
-                <p className="text-xs text-zinc-300 font-medium">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
                   {startup.added_at ? `Added on ${formatDate(startup.added_at)}` : 'N/A'}
                 </p>
               </div>
@@ -109,7 +117,7 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
                   <Briefcase className="w-3 h-3 text-zinc-500" />
                   Founded
                 </span>
-                <p className="text-xs text-zinc-300 font-medium">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
                   {startup.year_founded || 'Not specified'}
                 </p>
               </div>
@@ -118,19 +126,19 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
                   <Users className="w-3 h-3 text-zinc-500" />
                   Employees
                 </span>
-                <p className="text-xs text-zinc-300 font-medium">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
                   {startup.employee_count || 'Not specified'}
                 </p>
               </div>
               {startup.founder_email && (
-                <div className="space-y-1 col-span-2 border-t border-zinc-800/60 pt-3 mt-1">
+                <div className="space-y-1 col-span-2 border-t border-zinc-200 dark:border-zinc-800/60 pt-3 mt-1">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500 flex items-center gap-1">
                     <Mail className="w-3 h-3 text-zinc-500" />
                     Founder Email
                   </span>
                   <a 
                     href={`mailto:${startup.founder_email}`}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 hover:underline font-medium block truncate"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline font-medium block truncate"
                   >
                     {startup.founder_email}
                   </a>
@@ -140,17 +148,17 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
 
             {/* Description */}
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-zinc-300">About</h4>
-              <div className="text-sm text-zinc-400 leading-relaxed bg-zinc-900/10 p-4 rounded-xl border border-zinc-850 space-y-3">
+              <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-300">About</h4>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed bg-zinc-50 dark:bg-zinc-900/10 p-4 rounded-xl border border-zinc-200 dark:border-zinc-850 space-y-3">
                 <p>{startup.description || 'No detailed description available.'}</p>
                 {startup.article_url && (
-                  <div className="text-xs border-t border-zinc-800/80 pt-3 flex items-center justify-between">
+                  <div className="text-xs border-t border-zinc-200 dark:border-zinc-800/80 pt-3 flex items-center justify-between">
                     <span className="text-zinc-500">Information source:</span>
                     <a
                       href={startup.article_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-400 hover:text-indigo-300 hover:underline inline-flex items-center gap-1 font-medium text-xs"
+                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline inline-flex items-center gap-1 font-medium text-xs"
                     >
                       Source Article <FileText className="w-3.5 h-3.5" />
                     </a>
@@ -161,20 +169,20 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
 
             {/* Links Section */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-sm font-semibold text-zinc-300">Resources</h4>
+              <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-300">Resources</h4>
               <div className="flex flex-col gap-2">
                 {startup.website && (
                   <a
                     href={startup.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/50 hover:bg-indigo-600/5 border border-zinc-850 hover:border-indigo-500/20 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-all group"
+                    className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 hover:bg-indigo-50 dark:bg-zinc-900/50 dark:hover:bg-indigo-600/5 border border-zinc-200 dark:border-zinc-850 dark:hover:border-indigo-500/20 text-sm font-medium text-indigo-650 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-all group"
                   >
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-zinc-500" />
                       <span>Official Website</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
                   </a>
                 )}
                 {startup.linkedin_url && (
@@ -182,13 +190,13 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
                     href={startup.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/50 hover:bg-indigo-600/5 border border-zinc-850 hover:border-indigo-500/20 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-all group"
+                    className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 hover:bg-indigo-50 dark:bg-zinc-900/50 dark:hover:bg-indigo-600/5 border border-zinc-200 dark:border-zinc-850 dark:hover:border-indigo-500/20 text-sm font-medium text-indigo-650 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-all group"
                   >
                     <div className="flex items-center gap-2">
                       <Linkedin className="w-4 h-4 text-zinc-500" />
                       <span>LinkedIn Profile</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transform group-hover:translate-x-0.5 transition-transform" />
                   </a>
                 )}
               </div>

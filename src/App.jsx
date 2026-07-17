@@ -5,7 +5,7 @@ import StartupCard from './components/StartupCard';
 import DetailDrawer from './components/DetailDrawer';
 import ProfileModal from './components/ProfileModal';
 import { Toaster, toast } from 'react-hot-toast';
-import { Search, Filter, RotateCcw, AlertTriangle, Briefcase, Plus, ExternalLink } from 'lucide-react';
+import { Search, Filter, RotateCcw, AlertTriangle, Briefcase, Plus, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
@@ -27,6 +27,26 @@ function CardSkeleton() {
     </div>
   );
 }
+
+const getCompletenessScore = (startup) => {
+  let score = 0;
+  const fields = [
+    'founders',
+    'description',
+    'website',
+    'linkedin_url',
+    'year_founded',
+    'employee_count',
+    'founder_email'
+  ];
+  fields.forEach(field => {
+    const val = startup[field];
+    if (val !== undefined && val !== null && val !== '') {
+      score += 1;
+    }
+  });
+  return score;
+};
 
 export default function App() {
   const [startups, setStartups] = useState([]);
@@ -90,6 +110,15 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 12;
+
+  // Reset pagination when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedIndustry]);
+
   // Fetch startups
   const fetchStartups = async () => {
     setLoading(true);
@@ -126,20 +155,40 @@ export default function App() {
     return Array.from(indSet).sort();
   }, [startups]);
 
-  // Filter and search logic
+  // Filter, search, and sorting logic
   const filteredStartups = useMemo(() => {
-    return startups.filter(s => {
-      const matchesSearch = 
-        !searchQuery || 
-        s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        s.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.founders?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesIndustry = !selectedIndustry || s.industry === selectedIndustry;
+    return startups
+      .filter(s => {
+        const matchesSearch = 
+          !searchQuery || 
+          s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          s.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.founders?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesIndustry = !selectedIndustry || s.industry === selectedIndustry;
 
-      return matchesSearch && matchesIndustry;
-    });
+        return matchesSearch && matchesIndustry;
+      })
+      .sort((a, b) => {
+        const scoreA = getCompletenessScore(a);
+        const scoreB = getCompletenessScore(b);
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA;
+        }
+        // Fallback to added_at desc
+        const dateA = a.added_at ? new Date(a.added_at).getTime() : 0;
+        const dateB = b.added_at ? new Date(b.added_at).getTime() : 0;
+        return dateB - dateA;
+      });
   }, [startups, searchQuery, selectedIndustry]);
+
+  // Paginated startups logic
+  const paginatedStartups = useMemo(() => {
+    const startIndex = (currentPage - 1) * cardsPerPage;
+    return filteredStartups.slice(startIndex, startIndex + cardsPerPage);
+  }, [filteredStartups, currentPage, cardsPerPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredStartups.length / cardsPerPage));
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -290,14 +339,53 @@ export default function App() {
               </div>
             ) : (
               // Startup Card Grid
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-                {filteredStartups.map(startup => (
-                  <StartupCard 
-                    key={startup.id} 
-                    startup={startup} 
-                    onClick={() => setSelectedStartup(startup)}
-                  />
-                ))}
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedStartups.map(startup => (
+                    <StartupCard 
+                      key={startup.id} 
+                      startup={startup} 
+                      onClick={() => setSelectedStartup(startup)}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-zinc-900">
+                  <span className="text-xs text-zinc-400">
+                    Showing <strong className="text-zinc-200 font-semibold">{filteredStartups.length === 0 ? 0 : (currentPage - 1) * cardsPerPage + 1}–{Math.min(filteredStartups.length, currentPage * cardsPerPage)}</strong> of <strong className="text-zinc-200 font-semibold">{filteredStartups.length}</strong> startups
+                  </span>
+                  
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setCurrentPage(prev => Math.max(1, prev - 1));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
+                      title="Previous Page"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    
+                    <span className="text-xs font-medium text-zinc-300 px-3 py-1.5 rounded-lg bg-zinc-900/40 border border-zinc-850">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => {
+                        setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
+                      title="Next Page"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </>
