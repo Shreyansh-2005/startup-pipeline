@@ -41,10 +41,10 @@ export default function SendEmailModal({ isOpen, onClose, onSend, sending, start
       />
 
       {/* Modal Dialog */}
-      <div className="glass-modal relative w-full max-w-md overflow-hidden rounded-2xl bg-zinc-950 p-6 shadow-2xl border border-zinc-800 animate-in fade-in zoom-in-95 duration-200">
+      <div className="glass-modal relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-zinc-950 p-6 shadow-2xl border border-gray-200 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-all cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all cursor-pointer"
           disabled={sending}
         >
           <X className="w-4 h-4" />
@@ -55,10 +55,10 @@ export default function SendEmailModal({ isOpen, onClose, onSend, sending, start
             <Mail className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-zinc-100">
+            <h2 className="text-base font-bold text-zinc-800 dark:text-zinc-100">
               Recipient Email Address
             </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               Enter the founder's email address to send the cold email.
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function SendEmailModal({ isOpen, onClose, onSend, sending, start
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Address Input */}
           <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-semibold text-zinc-550 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
               Founder's Email
             </label>
             <div className="relative">
@@ -83,7 +83,7 @@ export default function SendEmailModal({ isOpen, onClose, onSend, sending, start
                 }}
                 disabled={sending}
                 placeholder="founder@startup.com"
-                className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-650 outline-none transition-all"
+                className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-650 outline-none transition-all"
                 required
                 autoFocus
               />
@@ -101,7 +101,7 @@ export default function SendEmailModal({ isOpen, onClose, onSend, sending, start
               type="button"
               onClick={onClose}
               disabled={sending}
-              className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-700 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer disabled:opacity-50"
+              className="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-850 dark:hover:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>

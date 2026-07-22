@@ -142,7 +142,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                 placeholder="e.g. Rahul Kumar"
-                className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none transition-all"
+                className="w-full bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-200 placeholder-zinc-450 dark:placeholder-zinc-600 outline-none transition-all"
                 required
               />
             </div>
@@ -162,7 +162,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 value={profile.college}
                 onChange={(e) => setProfile({ ...profile, college: e.target.value })}
                 placeholder="e.g. IIT Kharagpur"
-                className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none transition-all"
+                className="w-full bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-200 placeholder-zinc-450 dark:placeholder-zinc-600 outline-none transition-all"
                 required
               />
             </div>
@@ -182,7 +182,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 value={profile.target_role}
                 onChange={(e) => setProfile({ ...profile, target_role: e.target.value })}
                 placeholder="e.g. Software Engineer Intern"
-                className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none transition-all"
+                className="w-full bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-200 placeholder-zinc-450 dark:placeholder-zinc-600 outline-none transition-all"
                 required
               />
             </div>
@@ -195,22 +195,22 @@ export default function ProfileModal({ isOpen, onClose }) {
               <span className="text-[10px] text-zinc-500 font-normal normal-case">Max 2MB</span>
             </label>
             {resumeFilename ? (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-sm animate-in fade-in duration-305">
-                <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-350 min-w-0">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 text-sm animate-in fade-in duration-305">
+                <div className="flex items-center gap-2 text-gray-650 dark:text-zinc-350 min-w-0">
                   <FileText className="w-4 h-4 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
-                  <span className="truncate text-xs text-zinc-850 dark:text-zinc-300 font-semibold">{resumeFilename}</span>
+                  <span className="truncate text-xs text-gray-800 dark:text-zinc-300 font-semibold">{resumeFilename}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleRemoveResume}
-                  className="p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 hover:bg-rose-500/10 text-zinc-500 hover:text-rose-455 transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-850 hover:bg-rose-500/10 text-gray-500 hover:text-rose-455 transition-all cursor-pointer"
                   title="Remove resume"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <div className="relative flex items-center justify-center border border-dashed border-zinc-250 dark:border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/10 dark:hover:bg-zinc-900/20 transition-all group animate-in fade-in duration-305">
+              <div className="relative flex items-center justify-center border border-dashed border-gray-300 dark:border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900/10 dark:hover:bg-zinc-900/20 transition-all group animate-in fade-in duration-305">
                 <input
                   type="file"
                   accept=".pdf"
@@ -218,9 +218,9 @@ export default function ProfileModal({ isOpen, onClose }) {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div className="text-center space-y-1 select-none pointer-events-none">
-                  <Upload className="w-5 h-5 text-zinc-500 group-hover:text-indigo-500 mx-auto transition-colors" />
-                  <p className="text-xs text-zinc-650 dark:text-zinc-400 font-semibold">Click to upload PDF resume</p>
-                  <p className="text-[10px] text-zinc-400 dark:text-zinc-650 font-medium">PDF format only, up to 2MB</p>
+                  <Upload className="w-5 h-5 text-gray-500 group-hover:text-indigo-500 mx-auto transition-colors" />
+                  <p className="text-xs text-gray-700 dark:text-zinc-400 font-semibold">Click to upload PDF resume</p>
+                  <p className="text-[10px] text-gray-500 dark:text-zinc-650 font-medium">PDF format only, up to 2MB</p>
                 </div>
               </div>
             )}
@@ -241,7 +241,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 onChange={(e) => setProfile({ ...profile, skills: e.target.value })}
                 placeholder="e.g. React, Node.js, Python, TailwindCSS"
                 rows="3"
-                className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none resize-none transition-all"
+                className="w-full bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-200 placeholder-zinc-450 dark:placeholder-zinc-600 outline-none resize-none transition-all"
                 required
               />
             </div>
@@ -252,7 +252,7 @@ export default function ProfileModal({ isOpen, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-zinc-150 hover:bg-zinc-250 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+              className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-600 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200 border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer"
             >
               Cancel
             </button>

@@ -41,7 +41,7 @@ const getCompletenessScore = (startup) => {
   ];
   fields.forEach(field => {
     const val = startup[field];
-    if (val !== undefined && val !== null && val !== '') {
+    if (val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim().toLowerCase() !== 'null') {
       score += 1;
     }
   });
@@ -52,6 +52,24 @@ export default function App() {
   const [startups, setStartups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Theme state
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  // Toggle theme handler
+  const handleToggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Sync theme with localStorage and root element class
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
   
   // UI states
   const [selectedStartup, setSelectedStartup] = useState(null);
@@ -133,7 +151,7 @@ export default function App() {
       setStartups(data || []);
     } catch (err) {
       console.error('Error fetching startups:', err);
-      setError(err.message || 'Failed to fetch startups from Supabase.');
+      setError('Failed to load startups. Please check your internet connection or try again later.');
       toast.error('Failed to load startups database');
     } finally {
       setLoading(false);
@@ -199,7 +217,7 @@ export default function App() {
   const isFilterActive = searchQuery || selectedIndustry;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 flex flex-col selection:bg-indigo-500 selection:text-white transition-colors duration-300">
       {/* react-hot-toast provider */}
       <Toaster position="bottom-right" toastOptions={{
         style: {
@@ -221,6 +239,8 @@ export default function App() {
         gmailUser={gmailUser}
         onConnectGmail={loginGmail}
         onDisconnectGmail={handleDisconnectGmail}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Feed Content */}
@@ -248,7 +268,7 @@ export default function App() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, description, or founders..."
-              className="w-full bg-zinc-900/50 border border-zinc-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-550 outline-none transition-all"
+              className="w-full bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-200 placeholder-gray-500 dark:placeholder-zinc-500 outline-none transition-all"
             />
           </div>
 
@@ -257,11 +277,11 @@ export default function App() {
             <select
               value={selectedIndustry}
               onChange={(e) => setSelectedIndustry(e.target.value)}
-              className="w-full appearance-none bg-zinc-900/50 border border-zinc-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 px-3 pr-8 text-sm text-zinc-300 outline-none cursor-pointer transition-all"
+              className="w-full appearance-none bg-white dark:bg-zinc-900/50 border border-gray-300 dark:border-zinc-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl py-2 px-3 pr-8 text-sm text-gray-900 dark:text-zinc-300 outline-none cursor-pointer transition-all"
             >
-              <option value="">All Industries</option>
+              <option value="" className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-300">All Industries</option>
               {industries.map(ind => (
-                <option key={ind} value={ind}>{ind}</option>
+                <option key={ind} value={ind} className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-300">{ind}</option>
               ))}
             </select>
             <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-zinc-500">
@@ -275,7 +295,7 @@ export default function App() {
           {isFilterActive && (
             <button
               onClick={handleResetFilters}
-              className="w-full md:w-auto px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 bg-zinc-900 hover:bg-zinc-850 rounded-xl border border-zinc-800 hover:border-zinc-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              className="w-full md:w-auto px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-850 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -290,8 +310,8 @@ export default function App() {
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-zinc-200">Database Connection Failed</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200">Database Connection Failed</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 {error}
               </p>
             </div>
@@ -318,13 +338,13 @@ export default function App() {
           <>
             {filteredStartups.length === 0 ? (
               // Empty State
-              <div className="p-12 text-center max-w-sm mx-auto flex flex-col items-center gap-4 bg-zinc-900/10 border border-zinc-900 rounded-3xl animate-in fade-in duration-300">
-                <div className="p-4 bg-zinc-900/40 rounded-2xl border border-zinc-800 text-zinc-500">
+              <div className="p-12 text-center max-w-sm mx-auto flex flex-col items-center gap-4 bg-gray-50 dark:bg-zinc-900/10 border border-gray-200 dark:border-zinc-900 rounded-3xl animate-in fade-in duration-300">
+                <div className="p-4 bg-gray-100 dark:bg-zinc-900/40 rounded-2xl border border-gray-200 dark:border-zinc-800 text-gray-400 dark:text-zinc-500">
                   <Search className="w-8 h-8" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-zinc-200">No Startups Found</h3>
-                  <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-zinc-200">No Startups Found</h3>
+                  <p className="text-xs text-gray-600 dark:text-zinc-400 max-w-xs leading-relaxed">
                     No startups match your search queries or filter selections. Try clearing your search parameters.
                   </p>
                 </div>
@@ -351,9 +371,9 @@ export default function App() {
                 </div>
 
                 {/* Pagination Controls */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-zinc-900">
-                  <span className="text-xs text-zinc-400">
-                    Showing <strong className="text-zinc-200 font-semibold">{filteredStartups.length === 0 ? 0 : (currentPage - 1) * cardsPerPage + 1}–{Math.min(filteredStartups.length, currentPage * cardsPerPage)}</strong> of <strong className="text-zinc-200 font-semibold">{filteredStartups.length}</strong> startups
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200 dark:border-zinc-900">
+                  <span className="text-xs text-gray-500 dark:text-zinc-400">
+                    Showing <strong className="text-gray-800 dark:text-zinc-200 font-semibold">{filteredStartups.length === 0 ? 0 : (currentPage - 1) * cardsPerPage + 1}–{Math.min(filteredStartups.length, currentPage * cardsPerPage)}</strong> of <strong className="text-gray-800 dark:text-zinc-200 font-semibold">{filteredStartups.length}</strong> startups
                   </span>
                   
                   <div className="flex items-center gap-3">
@@ -363,13 +383,13 @@ export default function App() {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       disabled={currentPage === 1}
-                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
+                      className="p-2 rounded-xl bg-white hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-zinc-900 border border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 disabled:cursor-not-allowed text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
                       title="Previous Page"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     
-                    <span className="text-xs font-medium text-zinc-300 px-3 py-1.5 rounded-lg bg-zinc-900/40 border border-zinc-850">
+                    <span className="text-xs font-medium text-gray-700 dark:text-zinc-300 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900/40 border border-gray-300 dark:border-zinc-850">
                       Page {currentPage} of {totalPages}
                     </span>
                     
@@ -379,7 +399,7 @@ export default function App() {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       disabled={currentPage === totalPages}
-                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
+                      className="p-2 rounded-xl bg-white hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-zinc-900 border border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 disabled:cursor-not-allowed text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 transition-all flex items-center justify-center cursor-pointer"
                       title="Next Page"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -393,7 +413,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 py-6 text-center text-[10px] text-zinc-600 mt-auto">
+      <footer className="border-t border-gray-200 dark:border-zinc-900 py-6 text-center text-[10px] text-gray-550 dark:text-zinc-600 mt-auto">
         <span>&copy; {new Date().getFullYear()} Startup Compass. All rights reserved. Powered by Groq and Supabase.</span>
       </footer>
 

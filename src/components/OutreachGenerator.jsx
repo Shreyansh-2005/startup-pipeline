@@ -178,7 +178,7 @@ export default function OutreachGenerator({ startup, onOpenProfile, gmailToken, 
 
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
     if (!apiKey) {
-      setMessage('Something went wrong. Please try again in a moment.');
+      setMessage('Something went wrong. Please try again.');
       return;
     }
 
@@ -242,7 +242,8 @@ Outreach Rules:
       toast.success('Outreach message generated successfully!');
     } catch (err) {
       console.error('Groq generation error:', err);
-      setMessage('Something went wrong. Please try again in a moment.');
+      setMessage('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -262,8 +263,8 @@ Outreach Rules:
   const isProfileComplete = checkProfileCompleteness(parsed);
 
   return (
-    <div className="mt-8 border-t border-zinc-800 pt-6">
-      <h4 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+    <div className="mt-8 border-t border-zinc-200 dark:border-zinc-800 pt-6">
+      <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3 flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-indigo-400" />
         AI Outreach Generator
       </h4>
@@ -288,8 +289,8 @@ Outreach Rules:
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">
-              Personalizing for <strong className="text-zinc-300 font-semibold">{parsed.name}</strong> ({parsed.target_role})
+            <span className="text-xs text-zinc-550 dark:text-zinc-500">
+              Personalizing for <strong className="text-zinc-700 dark:text-zinc-300 font-semibold">{parsed.name}</strong> ({parsed.target_role})
             </span>
             <button
               onClick={onOpenProfile}
@@ -310,11 +311,11 @@ Outreach Rules:
           )}
 
           {loading && (
-            <div className="p-6 rounded-xl bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="p-6 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 text-center">
               <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" />
               <div className="space-y-1">
-                <span className="text-xs text-zinc-300 font-medium">Generating draft using Llama 3.3...</span>
-                <p className="text-[10px] text-zinc-500">Analyzing startup details and matching skills...</p>
+                <span className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">Generating draft using Llama 3.3...</span>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Analyzing startup details and matching skills...</p>
               </div>
             </div>
           )}
@@ -322,11 +323,11 @@ Outreach Rules:
           {message && (
             <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-400">Generated Email Draft</span>
+                <span className="text-xs font-semibold text-zinc-605 dark:text-zinc-400">Generated Email Draft</span>
                 <div className="flex gap-2">
                   <button
                     onClick={handleGenerate}
-                    className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-all cursor-pointer"
+                    className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-850 dark:hover:text-zinc-200 transition-all cursor-pointer"
                     title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -351,7 +352,7 @@ Outreach Rules:
               </div>
 
               <div className="relative">
-                <pre className="w-full bg-zinc-900/80 border border-zinc-850 rounded-xl p-4 text-xs text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto select-all">
+                <pre className="w-full bg-zinc-50 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-850 rounded-xl p-4 text-xs text-zinc-850 dark:text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto select-all">
                   {message}
                 </pre>
               </div>
