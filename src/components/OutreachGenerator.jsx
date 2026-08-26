@@ -212,6 +212,8 @@ Outreach Rules:
 5. Call to Action (CTA): Propose a brief 10-15 minute chat. Do NOT ask for a job directly; ask to learn more or show how they can help.
 6. Tone: Keep it professional yet enthusiastic, respectful, and ultra-short (less than 150 words). Avoid generic buzzwords.
 7. Return ONLY the Subject Line and Email Body, no additional text or explanations.
+8. Do NOT invent specific metrics, achievements, past projects, or accomplishments that were not explicitly provided above. Keep the value proposition general and tied only to the stated skills (${parsedProfile.skills}) — no fabricated numbers or claims.
+9. End the email with just "Best," followed by ${parsedProfile.name} on the next line — no placeholder contact info, no brackets, nothing else.
 `;
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
