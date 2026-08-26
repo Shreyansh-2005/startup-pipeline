@@ -238,6 +238,7 @@ Outreach Rules:
       }
 
       const data = await response.json();
+      console.log('GROQ RAW RESPONSE:', JSON.stringify(data, null, 2));
       const cleaned = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
       const text = cleaned;
       setMessage(text);
