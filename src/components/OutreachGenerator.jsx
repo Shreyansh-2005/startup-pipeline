@@ -223,7 +223,7 @@ Outreach Rules:
         body: JSON.stringify({
           model: 'openai/gpt-oss-20b',
           reasoning_format: 'hidden',
-          reasoning_effort: 'none',
+          reasoning_effort: 'low',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
