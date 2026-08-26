@@ -222,6 +222,7 @@ Outreach Rules:
         },
         body: JSON.stringify({
           model: 'qwen/qwen3.6-27b',
+          reasoning_format: 'hidden',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
@@ -237,7 +238,8 @@ Outreach Rules:
       }
 
       const data = await response.json();
-      const text = data.choices[0].message.content.trim();
+      const cleaned = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      const text = cleaned;
       setMessage(text);
       toast.success('Outreach message generated successfully!');
     } catch (err) {
