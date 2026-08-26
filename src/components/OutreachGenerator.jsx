@@ -223,6 +223,7 @@ Outreach Rules:
         body: JSON.stringify({
           model: 'qwen/qwen3.6-27b',
           reasoning_format: 'hidden',
+          reasoning_effort: 'low',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
