@@ -221,7 +221,7 @@ Outreach Rules:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'qwen/qwen3.6-27b',
+          model: 'openai/gpt-oss-20b',
           reasoning_format: 'hidden',
           reasoning_effort: 'low',
           messages: [

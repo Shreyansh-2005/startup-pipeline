@@ -70,7 +70,7 @@ async function fetchArticleContent(url) {
 async function parseWithGroq(article) {
   try {
     const response = await groq.chat.completions.create({
-      model: 'qwen/qwen3.6-27b',
+      model: 'openai/gpt-oss-20b',
       max_tokens: 500,
       messages: [{
         role: 'user',
