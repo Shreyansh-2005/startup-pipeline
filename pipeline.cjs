@@ -71,7 +71,7 @@ async function parseWithGroq(article) {
   try {
     const response = await groq.chat.completions.create({
       model: 'openai/gpt-oss-20b',
-      max_tokens: 500,
+      max_tokens: 1500,
       messages: [{
         role: 'user',
         content: `
