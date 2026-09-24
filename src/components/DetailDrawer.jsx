@@ -58,6 +58,7 @@ export default function DetailDrawer({ startup, isOpen, onClose, onOpenProfile, 
               Startup Details
             </h2>
             <button
+              data-testid="close-drawer"
               onClick={onClose}
               className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-gray-500 hover:text-gray-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-all cursor-pointer"
             >

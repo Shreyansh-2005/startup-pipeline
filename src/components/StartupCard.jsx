@@ -29,6 +29,7 @@ export default function StartupCard({ startup, onClick }) {
 
   return (
     <div 
+      data-testid="startup-card"
       onClick={onClick}
       className="glass-card flex flex-col justify-between p-5 rounded-2xl cursor-pointer group relative overflow-hidden"
     >

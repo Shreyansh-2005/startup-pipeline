@@ -48,6 +48,7 @@ export default function Navbar({
         <div className="flex items-center gap-2">
           {/* Theme Toggle Button */}
           <button
+            data-testid="theme-toggle"
             onClick={onToggleTheme}
             className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200 transition-all duration-200 cursor-pointer flex items-center justify-center"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -60,6 +61,7 @@ export default function Navbar({
           </button>
 
           <button
+            data-testid="feed-tab"
             onClick={() => setActiveTab('feed')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
               activeTab === 'feed'
@@ -72,6 +74,7 @@ export default function Navbar({
           </button>
           
           <button
+            data-testid="my-profile"
             onClick={onOpenProfile}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-650 dark:hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 hover:border-indigo-500/30 transition-all duration-200 cursor-pointer"
           >
@@ -134,6 +137,7 @@ export default function Navbar({
           ) : (
             <button
               id="connect-gmail-btn"
+              data-testid="connect-gmail"
               onClick={onConnectGmail}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-emerald-600 dark:text-emerald-450 hover:text-emerald-700 dark:hover:text-emerald-305 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 transition-all duration-200 cursor-pointer"
             >
