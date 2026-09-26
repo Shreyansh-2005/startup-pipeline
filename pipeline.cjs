@@ -19,7 +19,7 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_FALLBACK_MODEL = 'nvidia/nemotron-3-ultra-253b:free';
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabaseHeaders = {
   'apikey': supabaseKey,
   'Authorization': `Bearer ${supabaseKey}`,
