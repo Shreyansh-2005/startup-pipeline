@@ -16,7 +16,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 // Pick any currently-free model from openrouter.ai/models (filter by "free").
 // Free models rotate out occasionally — check this string periodically.
-const OPENROUTER_FALLBACK_MODEL = 'nvidia/nemotron-3-ultra-253b:free';
+const OPENROUTER_FALLBACK_MODEL = 'openrouter/free';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
