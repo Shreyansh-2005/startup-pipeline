@@ -32,7 +32,8 @@ const RSS_FEEDS = [
   'https://inc42.com/feed/',
   'https://economictimes.indiatimes.com/tech/startups/rssfeeds/78570550.cms',
   'https://entrackr.com/feed/',
-  'https://www.startupnews.fyi/feed'
+  'https://www.startupnews.fyi/feed',
+  'https://news.google.com/rss/search?q=indian+startup+funding&hl=en-IN&gl=IN&ceid=IN:en'
 ];
 
 const DELAY = 3000;
