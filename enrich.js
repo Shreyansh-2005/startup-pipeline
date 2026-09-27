@@ -84,14 +84,22 @@ async function enrichStartup(startup) {
         'X-Api-Key': APOLLO_KEY
       },
       body: JSON.stringify({
-      q_organization_domains: domain,
+      q_organization_domains_list: [domain],
       page: 1,
       per_page: 1
       })
     });
 
     if (!res.ok) {
-      console.log(`⚠️  Apollo error for ${startup.name}: ${res.status}`);
+      // Log the actual response body, not just the status code —
+      // this is what tells us WHY Apollo is rejecting the request.
+      let errorDetail;
+      try {
+        errorDetail = await res.json();
+      } catch {
+        errorDetail = await res.text().catch(() => '(no body)');
+      }
+      console.log(`⚠️  Apollo error for ${startup.name}: ${res.status}`, JSON.stringify(errorDetail));
     } else {
       const data = await res.json();
       const org = data.organizations?.[0];
